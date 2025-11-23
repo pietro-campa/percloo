@@ -18,3 +18,10 @@ From GitHub (example URL):
 
 ```stata
 net install percloo, from("https://raw.githubusercontent.com/YOURNAME/percloo/main/")
+
+## Author
+
+Pietro Campa
+Version 1.0.0 — 23 Nov 2025
+
+If you find bugs or have feature requests, please open an issue or send a pull request.
