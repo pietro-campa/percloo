@@ -1,0 +1,7 @@
+v 1.0.0
+d percloo: Leave-one-out percentiles within groups
+d Author: Pietro Campa
+d Date: 23 Nov 2025
+
+f percloo.ado
+f percloo.sthlp
