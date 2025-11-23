@@ -16,9 +16,9 @@ the focal observation.
 
 From GitHub (example URL):
 
-```stata
-net install percloo, from("https://raw.githubusercontent.com/YOURNAME/percloo/main/")
-stata'''
+~~~stata 
+  net install percloo, from("https://raw.githubusercontent.com/YOURNAME/percloo/main/")
+~~~
 
 ## Author
 
