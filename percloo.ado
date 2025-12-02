@@ -1,10 +1,11 @@
-*! version 1.0.0 23Nov2025
+*! version 1.0.1 2Dic2025
 * Atuhor : Pietro Campa 
 program define percloo, eclass sortpreserve
     version 16
     
     // ---- PARSE SYNTAX ----
     // varlist:    exactly 1 numeric variable (the variable whose percentile is computed)
+	// 			   cannot be missing.
     // group():    required grouping variable
     // p():        required percentile between 0 and 1
     // gen():      required new variable to store LOO percentile
@@ -17,27 +18,49 @@ program define percloo, eclass sortpreserve
         error 498
     }
 	
-    // ---- P FROMAT ----
-	
+    // ---- P FORMAT ----	
 	if (`p' < 0 | `p' > 1) {
         display as error `"{red}Parameter {bf:p} must be between 0 and 1."'
-		error 198
+		error 498
 	}	
     
-    tempvar r size
+    // ---- MISSING MEASURE ----	
+	count if missing(`varlist')
+	if `r(N)'!=0 {
+        display as error `"{red}Variable `varlist' cannot be missing, `r(N)' missing values detected."'
+		error 498
+	}	
+    
+	tempvar r size id
     tempname A
-    
-    // ---- WITHIN-GROUP RANK ----
-    // r    = rank of each observation within group (ascending)
-    // size = number of obs in each group
-    bys `group' (`varlist') : gen `r' = _n
-    bys `group' : egen `size' = count(`r')
+	tempfile result
+	
+	//identifier
+	gen `id' = _n
+	
+	preserve
+	
+		// work only with observations assigned to groups
+		quietly drop if missing(`group')		
+		keep `id' `group' `varlist'
+	
+		// ---- WITHIN-GROUP RANK ----
+		// r    = rank of each observation within group (ascending)
+		// size = number of obs in each group
+		bys `group' (`varlist') : gen `r' = _n
+		bys `group' : egen `size' = count(`r')
 
-    // ---- CALL MATA FUNCTION TO COMPUTE LOO PERCENTILES ----
-    mata: `A' = percloo_mata("`varlist'", "`r'", "`size'", `p')
-    
-    // ---- STORE RESULT BACK INTO STATA ----
-    getmata `gen' = `A'
+		// ---- CALL MATA FUNCTION TO COMPUTE LOO PERCENTILES ----
+		mata: `A' = percloo_mata("`varlist'", "`r'", "`size'", `p')
+		
+		// ---- STORE RESULT BACK INTO STATA ----
+		getmata `gen' = `A'
+		save `result'	
+	
+	restore
+	
+	// use identifier to import in dataset (where obs might be missing)
+	quietly merge 1:1 `id' using `result', nogen keepus(`gen')
     
 end
 
@@ -79,7 +102,7 @@ real matrix percloo_mata(
 
         // Observations above rank o → their rank drops by 1 when o removed
         id_above = selectindex(r :> o)
-
+		
         // ---- Construct leave-one-out ranks ----
         rloo = r
         rloo[id_above] = r[id_above] :- 1       // shift down
@@ -100,8 +123,13 @@ real matrix percloo_mata(
         a = k[id] - left_k[id]
 
         // ---- Identify the observations with those ranks ----
-        id_l = selectindex(rloo :== left_k)
+		id_l = selectindex(rloo :== left_k)
         id_r = selectindex(rloo :== right_k)
+
+		// (only for groups with more than o observations)		
+		excluded = n :< o
+		id_l = selectindex(excluded[id_l] :== 0)
+		id_r = selectindex(excluded[id_r] :== 0)
 
         // ---- Linear interpolation between X[left] and X[right] ----
         LOO[id] = a :* X[id_l] + (J(rows(a),1,1) - a) :* X[id_r]
