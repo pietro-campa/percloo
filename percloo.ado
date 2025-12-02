@@ -25,7 +25,7 @@ program define percloo, eclass sortpreserve
 	}	
     
     // ---- MISSING MEASURE ----	
-	count if missing(`varlist')
+	qui count if missing(`varlist')
 	if `r(N)'!=0 {
         display as error `"{red}Variable `varlist' cannot be missing, `r(N)' missing values detected."'
 		error 498
@@ -55,8 +55,7 @@ program define percloo, eclass sortpreserve
 		
 		// ---- STORE RESULT BACK INTO STATA ----
 		getmata `gen' = `A'
-		save `result'	
-	
+		qui save `result'	
 	restore
 	
 	// use identifier to import in dataset (where obs might be missing)
@@ -128,8 +127,8 @@ real matrix percloo_mata(
 
 		// (only for groups with more than o observations)		
 		excluded = n :< o
-		id_l = selectindex(excluded[id_l] :== 0)
-		id_r = selectindex(excluded[id_r] :== 0)
+		id_l = id_l[selectindex(excluded[id_l] :== 0)]
+		id_r = id_r[selectindex(excluded[id_r] :== 0)]
 
         // ---- Linear interpolation between X[left] and X[right] ----
         LOO[id] = a :* X[id_l] + (J(rows(a),1,1) - a) :* X[id_r]

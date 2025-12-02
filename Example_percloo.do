@@ -5,6 +5,8 @@
 
 clear all
 set more off
+which percloo
+
 
 // Load sample dataset
 sysuse auto, clear
