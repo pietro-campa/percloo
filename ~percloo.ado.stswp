@@ -137,3 +137,35 @@ real matrix percloo_mata(
     return(LOO)
 }
 end
+
+
+	/*
+	
+	Alternative app
+	Individuals are indexed i[1,N_g]
+	According to ascending order withing group of X.
+	
+	Define 
+	
+	LOO Percentile (p) : K_i = min(K) : P(X_j<=K|j!=i) = p
+	(where P is the within group PDF)
+	
+	Lemma1: K_1 = K_i forall i : X_i < K_1
+	Proof: The mass to the left of K_1 is unchanged 
+	by excluding 1 and including i (they are both to the left).
+				(Use Bayes THM to formalize it)
+	-> Use Lemma1 to compile K_i = K_1  forall i : X_i < K_1
+	
+	Compute K_m = min(K) : P(X_j<=K|X_j!=K_1) = p
+
+	Lemma2: K_m = K_j forall j : X_j > K_1
+	Proof: The mass to the right of K_m is unchanged 
+	by excluding i and including j (they are both to the right).
+				(Use Bayes THM to formalize it)
+	-> Use lemma2 to compile K_j = K_2  forall j : X_j > K_m
+	
+	
+	-> This is true assuming no tie at K_1.
+	How to relax this?
+	*/
+
