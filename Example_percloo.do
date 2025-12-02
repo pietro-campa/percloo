@@ -28,5 +28,5 @@ gen group = 1 if _n <12
 replace group = 2 if group == .
 gen x = runiform()
 gsort group x
-percloo x, group(group) p(0.01) gen(p50_loo)
-li
+percloo x, group(group) p(0.99) gen(p50_loo)
+
