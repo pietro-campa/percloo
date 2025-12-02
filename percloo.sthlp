@@ -1,60 +1,86 @@
 {smcl}
+{* *! version 1.0.2  3 Dec 2025}{...}
 {title:percloo — Leave-one-out percentile within groups}
 
-{p 4 4 2}
-{cmd:percloo} computes the leave-one-out percentile of a variable within
-groups. For each observation, its own value is removed, the remaining values
-are re-ranked, and the percentile {it:p} is interpolated from the
-leave-one-out distribution.
+{phang}
+{bf:percloo} computes a leave-one-out percentile of a variable within groups.
 
 {title:Syntax}
 
-{p 8 8 2}
-{cmd:percloo} {it:varname}, {cmd:group(}{it:groupvar}{cmd:)} {cmd:p(}{it:#}{cmd:)} {cmd:gen(}{it:newvar}{cmd:)}
-
-{title:Options}
-
-{p 4 8 2}
-{cmd:group(}{it:groupvar}{cmd:)}
-    Specifies the grouping variable. Percentiles are computed separately
-    within each group.
-
-{p 4 8 2}
+{p 8 16 2}
+{cmd:percloo} {it:varname} ,
+{cmd:group(}{it:varname}{cmd:)}
 {cmd:p(}{it:#}{cmd:)}
-    The desired percentile in [0,1], e.g. 0.5 for the median.
-
-{p 4 8 2}
 {cmd:gen(}{it:newvar}{cmd:)}
-    Name of the new variable containing the leave-one-out percentile.
-    The variable must not already exist.
 
 {title:Description}
 
-{p 4 4 2}
-Within each group, observations are sorted by {it:varname}. For each
-observation {it:i}, the program removes {it:i}, reduces the ranks of higher
-observations by one, and computes the percentile rank
+{pstd}
+{cmd:percloo} calculates the percentile of {it:varname} within each group,
+but in a leave-one-out (LOO) way: for each observation, its own value
+is excluded before computing the percentile.
 
-{p 8 8 2}
-{k = p*(n–1)}
+{pstd}
+Formally, for observation {it:i} in group {it:g}, the leave-one-out percentile is defined as:
 
-{p 4 4 2}
-where {it:n} is the group size. The program identifies the closest integer
-ranks to {it:k} and linearly interpolates the value of {it:varname}
-corresponding to those ranks. The result is stored in {it:newvar}.
+{p 12 12 2}
+{it:LOO(p)} = min({it:k}) such that P({it:X_j} < {it:k} | j ≠ i) = p
 
-{title:Example}
+{pstd}
+where the probability is computed over all other observations {it:j} in the group.
 
-{cmd:. sysuse auto}
-{cmd:. percloo price, group(foreign) p(0.5) gen(p50_loo)}
+{title:Options}
+
+{dlgtab:Main}
+
+{phang}
+{cmd:group(}{it:varname}{cmd:)}
+required. The variable defining groups.  
+Observations with missing group values are ignored and returned missing in {it:newvar}.
+
+{phang}
+{cmd:p(}{it:#}{cmd:)}
+required. Percentile between 0 and 1.  
+For example, {cmd:p(0.5)} computes the leave-one-out median.
+
+{phang}
+{cmd:gen(}{it:newvar}{cmd:)}
+required. Name of the new variable created by the command.  
+It must not already exist.
+
+{title:Remarks}
+
+{pstd}
+The leave-one-out percentile is not simply the percentile adjusted by a factor;
+removing a value shifts order statistics discontinuously.  {cmd:percloo}
+handles this by recomputing the effective rank of the desired percentile
+under each leave-one-out sample.
+
+{pstd} 
+Vetcorization avoids costly loops and it's based on the intuition that (exept for boundary cases treated separately) the LOO(p) is the same for all individuals on each side of a well defined rank.
+
+{pstd}
+You can install or update {cmd:percloo} directly from GitHub using:
+
+. {cmd:net install} percloo, from("https://raw.githubusercontent.com/pietro-campa/percloo/main/") 
+
+{title:Examples}
+
+{pstd}
+Compute the leave-one-out 25th percentile of variable {cmd:x} within {cmd:group},
+saving the result in {cmd:x_p25_loo}:
+
+. {cmd:percloo} x, group(group) p(0.25) gen(x_p25_loo)
 
 {title:Stored results}
 
-{p 4 4 2}
-{cmd:percloo} is an {cmd:eclass} command but stores no additional
-returned results.
+{pstd}
+{cmd:percloo} stores no results in r().
 
 {title:Author}
 
-{p 4 4 2}
-Pietro Campa — {it:percloo version 1.0.0 (23 Nov 2025)}
+{pstd}
+Pietro Campa  
+Version 1.0.2 — 3 December 2025
+
+
