@@ -42,19 +42,16 @@ program define percloo, eclass sortpreserve
         bys `group': egen `size' = count(`r')
 
         // ---- RANK OF PERCENTILE LEAVING OUT LOWEST REALIZATION ----
-        bys `group': gen `k1' = 1 + floor(`p' * (`size' - 1))
+        bys `group': gen `k1' = 1 + ceil(`p' * (`size' - 1))
 
         // ---- INDICATOR BELOW K1 ----
         gen `belowk1' = `r' < `k1'
 
-        // ---- RANK OF PERCENTILE LEAVING OUT RANK K1 ----
-        gen `km' = `k1' + 1
-
         // ---- VALUE OF X RANKING AT K1 COPIED INTO HIGHEST RANKING BELOW K1 ----
         bys `group' (`varlist'): gen `perc0' = `varlist'[_n+1] if `r' == `k1' - 1
 
-        // ---- VALUE OF X RANKING AT KM COPIED INTO LOWEST RANKING ABOVE K1 ----
-        replace `perc0' = `varlist' if `r' == `km'
+        // ---- VALUE OF X RANKING AT K1-1 COPIED INTO RANKING AT K1 ----
+        bys `group' (`varlist'): replace `perc0' = `varlist'[_n-1] if `r' == `k1'
 
         // ---- COPY ON OTHER OBSERVATIONS ON EACH SIDE OF CUTOFF ----
         bys `group' `belowk1': egen `perc' = mean(`perc0')

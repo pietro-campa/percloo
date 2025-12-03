@@ -24,7 +24,7 @@ is excluded before computing the percentile.
 Formally, for observation {it:i} in group {it:g}, the leave-one-out percentile is defined as:
 
 {p 12 12 2}
-{it:LOO(p)} = min({it:k}) such that P({it:X_j} < {it:k} | j ≠ i) = p
+{it:LOO(p)} = min({it:k}) such that P({it:X_j} <= {it:k} | j ≠ i) = p
 
 {pstd}
 where the probability is computed over all other observations {it:j} in the group.
